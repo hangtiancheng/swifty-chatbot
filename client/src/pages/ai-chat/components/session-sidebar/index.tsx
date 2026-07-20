@@ -2,6 +2,9 @@ import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import type { Session } from "@/types";
 
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 interface Props {
   sessions: Session[];
   currentSessionId: string | null;
@@ -18,15 +21,16 @@ function SessionSidebar({
   const { t } = useTranslation();
 
   return (
-    <aside className="border-base-200 bg-base-100 flex w-72 flex-col border-r">
-      <div className="border-base-200 border-b p-4">
-        <button
+    <aside className="bg-background flex w-72 flex-col border-r">
+      <div className="border-b p-4">
+        <Button
+          variant="outline"
           onClick={onCreateNewSession}
-          className="btn border-base-200 bg-base-100 text-base-content hover:bg-base-200 h-10 min-h-10 w-full gap-2 rounded-full border shadow-sm"
+          className="press-feedback h-10 w-full rounded-full shadow-sm"
         >
-          <Plus className="text-primary h-5 w-5" />
+          <Plus data-icon="inline-start" className="text-primary" />
           {t("chat.new_chat")}
-        </button>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -35,11 +39,12 @@ function SessionSidebar({
             <button
               key={session.id}
               onClick={() => onSwitch(session.id)}
-              className={`mb-1 w-full rounded-full px-4 py-3 text-left text-sm transition-colors ${
+              className={cn(
+                "mb-1 w-full rounded-full px-4 py-3 text-left text-sm transition-colors",
                 currentSessionId === session.id
                   ? "bg-primary/10 text-primary font-medium"
-                  : "text-base-content hover:bg-base-200"
-              }`}
+                  : "hover:bg-accent",
+              )}
             >
               {session.name}
             </button>

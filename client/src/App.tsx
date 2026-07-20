@@ -1,6 +1,6 @@
 import { RouterProvider } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import ThemeProvider from "@/components/theme-provider";
 import { queryClient } from "@/api/query-client";
 import router from "@/router";

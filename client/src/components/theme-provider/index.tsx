@@ -14,17 +14,13 @@ function ThemeProvider({ children }: PropsWithChildren) {
 
     // Add the resolved theme class
     root.classList.add(resolvedTheme);
-    root.setAttribute(
-      "data-theme",
-      resolvedTheme === "dark" ? "mydarktheme" : "mylighttheme",
-    );
 
     // Update meta theme-color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute(
         "content",
-        resolvedTheme === "dark" ? "#1e2320" : "#f5fbf7",
+        resolvedTheme === "dark" ? "#292120" : "#fdf3f1",
       );
     }
   }, [resolvedTheme]);
@@ -42,10 +38,6 @@ function ThemeProvider({ children }: PropsWithChildren) {
       const newTheme = mediaQuery.matches ? "dark" : "light";
       root.classList.remove("light", "dark");
       root.classList.add(newTheme);
-      root.setAttribute(
-        "data-theme",
-        newTheme === "dark" ? "mydarktheme" : "mylighttheme",
-      );
     };
 
     mediaQuery.addEventListener("change", handleChange);

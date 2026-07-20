@@ -5,6 +5,19 @@ import type { ChangeEvent, RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
 interface Props {
   currentSessionId: string | null;
   tempSession: boolean;
@@ -36,66 +49,77 @@ function ChatHeader({
   const navigate = useNavigate();
 
   return (
-    <header className="border-base-200 bg-base-100 flex items-center gap-4 border-b px-6 py-3">
-      <button
+    <header className="bg-background/70 flex items-center gap-4 border-b px-6 py-3 backdrop-blur-md">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="rounded-full"
         onClick={() => navigate("/menu")}
-        className="btn btn-ghost btn-sm text-base-content/70 hover:bg-base-200 gap-2 rounded-full"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft data-icon="inline-start" />
         {t("common.back")}
-      </button>
+      </Button>
 
-      <div className="bg-base-300 h-6 w-px" />
+      <Separator orientation="vertical" className="h-6" />
 
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
+        className="rounded-full"
         onClick={onSyncHistory}
         disabled={
           currentSessionId === null ||
           currentSessionId.length === 0 ||
           tempSession
         }
-        className="btn btn-ghost btn-sm text-base-content/70 hover:bg-base-200 gap-2 rounded-full disabled:opacity-50"
       >
-        <RefreshCw className="h-4 w-4" />
+        <RefreshCw data-icon="inline-start" />
         {t("chat.sync_history")}
-      </button>
+      </Button>
 
       <div className="ml-4 flex items-center gap-2">
-        <span className="text-base-content/70 text-sm">{t("chat.model")}:</span>
-        <select
+        <span className="text-muted-foreground text-sm">
+          {t("chat.model")}:
+        </span>
+        <Select
           value={selectedModel}
-          onChange={(e) => onModelChange(e.target.value as ModelType)}
-          className="select select-bordered select-sm border-base-300 focus:ring-primary h-9 w-40 rounded-md text-sm focus:ring-1 focus:outline-none"
+          onValueChange={(value) => onModelChange(value as ModelType)}
         >
-          <option value={MODELS.OLLAMA_MODEL}>Ollama</option>
-          <option value={MODELS.OLLAMA_RAG_MODEL}>Ollama with RAG</option>
-        </select>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value={MODELS.OLLAMA_MODEL}>Ollama</SelectItem>
+              <SelectItem value={MODELS.OLLAMA_RAG_MODEL}>
+                Ollama with RAG
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="ml-4 flex items-center gap-2">
-        <input
-          type="checkbox"
+        <Checkbox
           id="streaming"
           checked={isStreaming}
-          onChange={(e) => onStreamingChange(e.target.checked)}
-          className="checkbox checkbox-sm checkbox-primary border-base-300"
+          onCheckedChange={(checked) => onStreamingChange(checked === true)}
         />
-        <label
-          htmlFor="streaming"
-          className="text-base-content/70 cursor-pointer text-sm"
-        >
+        <Label htmlFor="streaming" className="cursor-pointer font-normal">
           {t("chat.streaming")}
-        </label>
+        </Label>
       </div>
 
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
+        className="ml-auto rounded-full"
         onClick={onTriggerUpload}
         disabled={uploading}
-        className="btn btn-ghost btn-sm text-base-content/70 hover:bg-base-200 ml-auto gap-2 rounded-full disabled:opacity-50"
       >
-        <Paperclip className="h-4 w-4" />
+        <Paperclip data-icon="inline-start" />
         {t("chat.upload_doc")}
-      </button>
+      </Button>
       <input
         ref={fileInputRef}
         type="file"
@@ -104,7 +128,7 @@ function ChatHeader({
         onChange={onFileUpload}
       />
 
-      <div className="bg-base-300 h-6 w-px" />
+      <Separator orientation="vertical" className="h-6" />
       <SettingsBar />
     </header>
   );

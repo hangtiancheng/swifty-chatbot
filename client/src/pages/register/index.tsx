@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "react-router-dom";
 import { useSetAtom } from "jotai";
 import { setTokenAtom } from "@/stores/auth";
@@ -9,6 +8,16 @@ import { useRegister } from "@/hooks/queries";
 import { toast } from "sonner";
 import SettingsBar from "@/components/settings-bar";
 import { UserPlus } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 const registerSchema = z
   .object({
@@ -23,7 +32,13 @@ const registerSchema = z
     path: ["confirmPassword"],
   });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return "";
+}
 
 function Register() {
   const { t } = useTranslation();
@@ -31,146 +46,128 @@ function Register() {
   const setToken = useSetAtom(setTokenAtom);
   const registerMutation = useRegister();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm({
     defaultValues: {
       email: "",
       password: "",
       confirmPassword: "",
     },
+    validators: {
+      onChange: registerSchema,
+    },
+    onSubmit: ({ value }) => {
+      registerMutation.mutate(
+        { email: value.email, password: value.password },
+        {
+          onSuccess: ({ code, token, message }) => {
+            if (code === 1000 && token) {
+              setToken(token);
+              toast.success(t("auth.register_success"));
+              navigate("/menu");
+            } else {
+              toast.error(message || t("auth.register_failed"));
+            }
+          },
+          onError: (err) => {
+            if (import.meta.env.DEV) console.error(err);
+            toast.error(t("auth.register_failed"));
+          },
+        },
+      );
+    },
   });
 
-  const onSubmit = (data: RegisterFormData) => {
-    registerMutation.mutate(
-      { email: data.email, password: data.password },
-      {
-        onSuccess: ({ code, token, message }) => {
-          if (code === 1000 && token) {
-            setToken(token);
-            toast.success(t("auth.register_success"));
-            navigate("/menu");
-          } else {
-            toast.error(message || t("auth.register_failed"));
-          }
-        },
-        onError: (err) => {
-          if (import.meta.env.DEV) console.error(err);
-          toast.error(t("auth.register_failed"));
-        },
-      },
-    );
-  };
+  const fields = [
+    { name: "email", type: "email", placeholder: "auth.email_required" },
+    {
+      name: "password",
+      type: "password",
+      placeholder: "auth.password_required",
+    },
+    {
+      name: "confirmPassword",
+      type: "password",
+      placeholder: "auth.password_mismatch",
+    },
+  ] as const;
 
   return (
-    <div className="bg-base-100 flex min-h-screen flex-col">
+    <div className="bg-background flex min-h-screen flex-col">
       <div className="absolute top-4 right-4 z-10">
         <SettingsBar />
       </div>
       <div className="flex flex-1 items-center justify-center">
-        <div className="card border-base-200 bg-base-100 w-105 rounded-lg border shadow-none">
-          <div className="pt-10 pb-2 text-center">
+        <Card className="w-105 gap-0 shadow-none">
+          <CardHeader className="pt-10 pb-2 text-center">
             {/* Logo */}
             <div className="mb-6 flex justify-center">
-              <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-full">
-                <UserPlus className="text-primary h-8 w-8" />
+              <div className="bg-primary/10 flex size-16 items-center justify-center rounded-full">
+                <UserPlus className="text-primary size-8" />
               </div>
             </div>
-            <h2 className="text-base-content text-2xl font-normal">
-              {t("auth.register")}
-            </h2>
-            <p className="text-base-content/70 mt-2 text-sm">
+            <h2 className="text-2xl font-normal">{t("auth.register")}</h2>
+            <p className="text-muted-foreground mt-2 text-sm">
               {t("auth.register_for")}
             </p>
-          </div>
-          <div className="card-body px-10 pb-10">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="label-text text-base-content/70 text-xs font-medium"
-                >
-                  {t("auth.email")}
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder={t("auth.email_required")}
-                  {...register("email")}
-                  className="input input-bordered border-base-200 bg-base-100 focus:border-primary h-12 w-full rounded-md focus:outline-none"
-                />
-                {errors.email && (
-                  <p className="text-sm text-red-500">
-                    {t(errors.email.message ?? "")}
-                  </p>
-                )}
-              </div>
+          </CardHeader>
+          <CardContent className="px-10 pb-10">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup className="gap-5">
+                {fields.map(({ name, type, placeholder }) => (
+                  <form.Field key={name} name={name}>
+                    {(field) => {
+                      const error = getErrorMessage(field.state.meta.errors[0]);
+                      return (
+                        <Field data-invalid={!field.state.meta.isValid}>
+                          <FieldLabel htmlFor={field.name}>
+                            {t(
+                              `auth.${name === "confirmPassword" ? "confirm_password" : name}`,
+                            )}
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            type={type}
+                            placeholder={t(placeholder)}
+                            aria-invalid={!field.state.meta.isValid}
+                            className="h-12"
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                          />
+                          {error && <FieldError>{t(error)}</FieldError>}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+                ))}
 
-              <div className="space-y-2">
-                <label
-                  htmlFor="password"
-                  className="label-text text-base-content/70 text-xs font-medium"
-                >
-                  {t("auth.password")}
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder={t("auth.password_required")}
-                  {...register("password")}
-                  className="input input-bordered border-base-200 bg-base-100 focus:border-primary h-12 w-full rounded-md focus:outline-none"
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-500">
-                    {t(errors.password.message ?? "")}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="confirmPassword"
-                  className="label-text text-base-content/70 text-xs font-medium"
-                >
-                  {t("auth.confirm_password")}
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder={t("auth.password_mismatch")}
-                  {...register("confirmPassword")}
-                  className="input input-bordered border-base-200 bg-base-100 focus:border-primary h-12 w-full rounded-md focus:outline-none"
-                />
-                {errors.confirmPassword && (
-                  <p className="text-sm text-red-500">
-                    {t(errors.confirmPassword.message ?? "")}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-4">
-                <Link
-                  to="/login"
-                  className="text-primary text-sm font-medium hover:brightness-90"
-                >
-                  {t("auth.has_account")}
-                </Link>
-                <button
-                  type="submit"
-                  className="btn bg-primary h-10 min-h-10 rounded-md border-none px-6 font-medium text-white hover:brightness-90"
-                  disabled={registerMutation.isPending}
-                >
-                  {registerMutation.isPending
-                    ? t("auth.signing_up")
-                    : t("auth.register")}
-                </button>
-              </div>
+                <div className="flex items-center justify-between pt-4">
+                  <Link
+                    to="/login"
+                    className="text-primary text-sm font-medium hover:opacity-80"
+                  >
+                    {t("auth.has_account")}
+                  </Link>
+                  <Button
+                    type="submit"
+                    className="press-feedback h-10 px-6"
+                    disabled={registerMutation.isPending}
+                  >
+                    {registerMutation.isPending
+                      ? t("auth.signing_up")
+                      : t("auth.register")}
+                  </Button>
+                </div>
+              </FieldGroup>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

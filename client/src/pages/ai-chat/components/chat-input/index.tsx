@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Send } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+
 interface Props {
   loading: boolean;
   onSend: (message: string) => void;
@@ -30,9 +32,9 @@ function ChatInput({ loading, onSend }: Props) {
   };
 
   return (
-    <div className="border-base-200 bg-base-100 border-t p-4">
+    <div className="bg-background border-t p-4">
       <div className="mx-auto max-w-3xl">
-        <div className="bg-base-200 focus-within:border-primary focus-within:bg-base-100 relative flex items-center rounded-full border border-transparent transition-all">
+        <div className="bg-muted focus-within:border-primary focus-within:bg-background relative flex items-center rounded-full border border-transparent transition-all">
           <textarea
             ref={textareaRef}
             value={inputMessage}
@@ -41,17 +43,19 @@ function ChatInput({ loading, onSend }: Props) {
             placeholder={t("chat.input_placeholder")}
             disabled={loading}
             rows={1}
-            className="text-base-content placeholder-base-content/50 max-h-30 flex-1 resize-none bg-transparent px-6 py-3 focus:outline-none disabled:opacity-50"
+            className="placeholder:text-muted-foreground max-h-30 flex-1 resize-none bg-transparent px-6 py-3 focus:outline-none disabled:opacity-50"
           />
-          <button
+          <Button
+            size="icon"
             onClick={handleSend}
             disabled={inputMessage.trim().length === 0 || loading}
-            className="btn btn-circle bg-primary disabled:bg-base-200 mr-2 h-10 min-h-10 w-10 border-none hover:brightness-90 disabled:opacity-100"
+            className="press-feedback mr-2 size-10 rounded-full"
+            aria-label={t("chat.send_hint")}
           >
-            <Send className="h-5 w-5 text-white" />
-          </button>
+            <Send />
+          </Button>
         </div>
-        <p className="text-base-content/70 mt-2 text-center text-xs">
+        <p className="text-muted-foreground mt-2 text-center text-xs">
           {t("chat.send_hint")}
         </p>
       </div>

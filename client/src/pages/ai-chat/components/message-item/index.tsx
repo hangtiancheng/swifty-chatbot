@@ -4,42 +4,42 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTranslation } from "react-i18next";
 
+import { cn } from "@/lib/utils";
+
 interface Props {
   message: Message;
 }
 
 function MessageItem({ message }: Props) {
   const { t } = useTranslation();
+  const isUser = message.role === "user";
+
   return (
-    <div
-      className={`flex gap-4 ${
-        message.role === "user" ? "flex-row-reverse" : ""
-      }`}
-    >
+    <div className={cn("flex gap-4", isUser && "flex-row-reverse")}>
       {/* Avatar */}
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-          message.role === "user" ? "bg-primary" : "bg-primary/10"
-        }`}
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-full",
+          isUser ? "bg-primary" : "bg-primary/10",
+        )}
       >
-        {message.role === "user" ? (
-          <User className="h-5 w-5 text-white" />
+        {isUser ? (
+          <User className="text-primary-foreground size-5" />
         ) : (
-          <Sparkles className="text-primary h-5 w-5" />
+          <Sparkles className="text-primary size-5" />
         )}
       </div>
 
       {/* Message Content */}
-      <div className={`flex-1 ${message.role === "user" ? "text-right" : ""}`}>
+      <div className={cn("flex-1", isUser && "text-right")}>
         <div className="mb-1 flex items-center gap-2">
           <span
-            className={`text-sm font-medium ${
-              message.role === "user"
-                ? "text-primary ml-auto"
-                : "text-base-content"
-            }`}
+            className={cn(
+              "text-sm font-medium",
+              isUser ? "text-primary ml-auto" : "text-foreground",
+            )}
           >
-            {message.role === "user" ? t("chat.you") : t("chat.ai")}
+            {isUser ? t("chat.you") : t("chat.ai")}
           </span>
 
           {message.status === "thinking" && (
@@ -47,20 +47,21 @@ function MessageItem({ message }: Props) {
           )}
         </div>
         <div
-          className={`inline-block max-w-full rounded-2xl px-4 py-3 wrap-break-word ${
-            message.role === "user"
-              ? "bg-primary text-left text-white"
-              : "bg-base-200 text-base-content"
-          }`}
+          className={cn(
+            "inline-block max-w-full rounded-2xl px-4 py-3 wrap-break-word",
+            isUser
+              ? "bg-primary text-primary-foreground text-left"
+              : "bg-muted text-foreground",
+          )}
         >
           {message.status === "thinking" ? (
             <div className="flex items-center gap-1.5 py-1">
-              <span className="bg-base-content/40 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
-              <span className="bg-base-content/40 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
-              <span className="bg-base-content/20 h-2 w-2 animate-bounce rounded-full" />
+              <span className="bg-muted-foreground/40 size-2 animate-bounce rounded-full [animation-delay:-0.3s]" />
+              <span className="bg-muted-foreground/40 size-2 animate-bounce rounded-full [animation-delay:-0.15s]" />
+              <span className="bg-muted-foreground/20 size-2 animate-bounce rounded-full" />
             </div>
           ) : (
-            <div className="prose prose-sm [&_code]:bg-base-200 &_code]:bg-base-300 [&_pre]:bg-base-100 &_pre]:bg-base-300 max-w-none text-sm leading-relaxed wrap-break-word [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_pre]:rounded-lg [&_pre]:p-3">
+            <div className="prose prose-sm [&_code]:bg-background/60 max-w-none text-sm leading-relaxed wrap-break-word [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_pre]:rounded-lg [&_pre]:p-3">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {message.content}
               </ReactMarkdown>

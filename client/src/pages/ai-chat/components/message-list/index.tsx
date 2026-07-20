@@ -30,13 +30,11 @@ function MessageList({ messages }: Props) {
   if (messages.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-        <div className="bg-primary/10 mb-6 flex h-20 w-20 items-center justify-center rounded-full">
-          <Sparkles className="text-primary h-10 w-10" />
+        <div className="bg-primary/10 mb-6 flex size-20 items-center justify-center rounded-full">
+          <Sparkles className="text-primary size-10" />
         </div>
-        <h2 className="text-base-content mb-3 text-2xl font-normal">
-          {t("chat.empty_title")}
-        </h2>
-        <p className="text-base-content/70 max-w-md">{t("chat.empty_desc")}</p>
+        <h2 className="mb-3 text-2xl font-normal">{t("chat.empty_title")}</h2>
+        <p className="text-muted-foreground max-w-md">{t("chat.empty_desc")}</p>
       </div>
     );
   }

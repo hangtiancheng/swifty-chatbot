@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { useEffect, useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState } from "react";
 import useFileUpload from "@/hooks/use-file-upload";
 import SessionSidebar from "./components/session-sidebar";
 import ChatHeader from "./components/chat-header";
@@ -21,8 +21,10 @@ function AiChat() {
   const [sessions, setSessions] = useState<{ [sessionId: string]: Session }>(
     {},
   );
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [tempSession, setTempSession] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(
+    "temp",
+  );
+  const [tempSession, setTempSession] = useState(true);
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ModelType>(
@@ -43,14 +45,18 @@ function AiChat() {
     setCurrentMessages([]);
   }, []);
 
-  useEffect(() => {
+  // Sync query data into local state during render (guarded adjust pattern)
+  const sessionsData = sessionsQuery.data;
+  const [prevSessionsData, setPrevSessionsData] = useState(sessionsData);
+  if (sessionsData !== prevSessionsData) {
+    setPrevSessionsData(sessionsData);
     if (
-      sessionsQuery.data?.code === 1000 &&
-      sessionsQuery.data.sessions &&
-      sessionsQuery.data.sessions.length
+      sessionsData?.code === 1000 &&
+      sessionsData.sessions &&
+      sessionsData.sessions.length
     ) {
       const sessionId2title: { [sessionId: string]: Session } = {};
-      for (const { id, title } of sessionsQuery.data.sessions) {
+      for (const { id, title } of sessionsData.sessions) {
         sessionId2title[id] = {
           id,
           name: title || `${t("chat.session")} ${id}`,
@@ -61,7 +67,7 @@ function AiChat() {
     } else {
       createNewSession();
     }
-  }, [sessionsQuery.data, t, createNewSession]);
+  }
 
   // Query: load chat history
   const chatHistoryQuery = useChatHistory(
@@ -69,13 +75,16 @@ function AiChat() {
     historyEnabled,
   );
 
-  useEffect(() => {
+  const historyData = chatHistoryQuery.data;
+  const [prevHistoryData, setPrevHistoryData] = useState(historyData);
+  if (historyData !== prevHistoryData) {
+    setPrevHistoryData(historyData);
     if (
-      chatHistoryQuery.data?.code === 1000 &&
-      chatHistoryQuery.data.history &&
+      historyData?.code === 1000 &&
+      historyData.history &&
       fetchHistorySessionId
     ) {
-      const messages: Message[] = chatHistoryQuery.data.history.map(
+      const messages: Message[] = historyData.history.map(
         ({ is_user, content }) => ({
           role: is_user ? "user" : "ai",
           content,
@@ -91,7 +100,7 @@ function AiChat() {
       setCurrentMessages(messages);
       setHistoryEnabled(false);
     }
-  }, [chatHistoryQuery.data, fetchHistorySessionId]);
+  }
 
   // Mutation: create session + send message
   const createSessionMutation = useCreateSessionAndSendMessage();
@@ -369,7 +378,7 @@ function AiChat() {
     useFileUpload();
 
   return (
-    <div className="bg-base-100 flex h-screen overflow-hidden">
+    <div className="bg-background flex h-screen overflow-hidden">
       {/* Session Sidebar */}
       <SessionSidebar
         sessions={sessionList}
@@ -398,14 +407,12 @@ function AiChat() {
         {/* Messages Area */}
         <div className="flex-1 overflow-hidden">
           {currentMessages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center space-y-4">
-              <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
-                <Sparkles className="text-primary h-8 w-8" />
+            <div className="flex h-full flex-col items-center justify-center gap-4">
+              <div className="bg-primary/10 flex size-16 items-center justify-center rounded-2xl">
+                <Sparkles className="text-primary size-8" />
               </div>
-              <h2 className="text-base-content text-2xl font-normal">
-                {t("chat.how_can_help")}
-              </h2>
-              <p className="text-base-content/70">
+              <h2 className="text-2xl font-normal">{t("chat.how_can_help")}</h2>
+              <p className="text-muted-foreground">
                 {t("chat.start_conversation")}
               </p>
             </div>
