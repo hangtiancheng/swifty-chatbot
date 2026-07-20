@@ -1,3 +1,11 @@
 {
-  "cSpell.words": ["codegen", "langchain", "ollama"]
+  "cSpell.words": [
+    "bodyparser",
+    "codegen",
+    "esbuild",
+    "langchain",
+    "ollama",
+    "swifty",
+    "textsplitters"
+  ]
 }

@@ -32,6 +32,6 @@ export const resolvedThemeAtom = atom((get) => {
 export const languageAtom = atomWithStorage<string>("language", "zh");
 
 export const modelAtom = atomWithStorage<ModelType>(
-  "ai_agent_model",
+  "swifty_chatbot_model",
   MODELS.OLLAMA_MODEL,
 );

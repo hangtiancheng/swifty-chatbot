@@ -60,7 +60,7 @@ const config: Config = {
   app: {
     name: process.env.APP_NAME || "swifty-chatbot",
     host: process.env.APP_HOST || "0.0.0.0",
-    port: Number.parseInt(process.env.APP_PORT || "8080", 10),
+    port: Number.parseInt(process.env.APP_PORT || "8088", 10),
   },
   redis: {
     enabled: process.env.REDIS_ENABLED === "true",
@@ -74,7 +74,7 @@ const config: Config = {
     host: process.env.MYSQL_HOST || "localhost",
     user: process.env.MYSQL_USER || "root",
     password: process.env.MYSQL_PASSWORD || "pass",
-    db: process.env.MYSQL_DB || "ai_agent",
+    db: process.env.MYSQL_DB || "swifty_chatbot",
     charset: process.env.MYSQL_CHARSET || "utf8mb4",
   },
   jwt: {
