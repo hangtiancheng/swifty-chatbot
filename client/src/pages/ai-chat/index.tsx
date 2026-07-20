@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useRef, useState } from "react";
 import useFileUpload from "@/hooks/use-file-upload";
 import SessionSidebar from "./components/session-sidebar";
 import ChatHeader from "./components/chat-header";
@@ -108,6 +108,29 @@ function AiChat() {
   // Mutation: send message to existing session
   const sendMessageMutation = useSendMessage2Session();
 
+  // Buffer for in-flight streamed text. Chunks land here (zero React renders);
+  // TypingText reads it directly, and the final content is committed to state
+  // exactly once when the stream settles.
+  const streamTextRef = useRef("");
+
+  /** Flush the buffered stream into the trailing AI message in a single setState. */
+  const commitStreamedMessage = useCallback((status: "done" | "error") => {
+    const content = streamTextRef.current;
+    streamTextRef.current = "";
+    setCurrentMessages((prev) => {
+      const newMessages = [...prev];
+      const lastIdx = newMessages.length - 1;
+      if (newMessages[lastIdx]?.role === "ai") {
+        newMessages[lastIdx] = {
+          ...newMessages[lastIdx],
+          content,
+          status,
+        };
+      }
+      return newMessages;
+    });
+  }, []);
+
   // Streaming mutation
   const streamMutation = useStreamMessage({
     onSessionCreated: (sessionId: string) => {
@@ -125,46 +148,17 @@ function AiChat() {
       }
     },
     onChunk: (fullContent: string) => {
-      setCurrentMessages((prev) => {
-        const newMessages = [...prev];
-        if (
-          newMessages.length &&
-          newMessages[newMessages.length - 1].role === "ai"
-        ) {
-          newMessages[newMessages.length - 1] = {
-            ...newMessages[newMessages.length - 1],
-            content: fullContent,
-          };
-        }
-        return newMessages;
-      });
+      // Hot path: ref write only — no setState, no re-render per chunk.
+      streamTextRef.current = fullContent;
     },
     onDone: () => {
       setLoading(false);
-      setCurrentMessages((prev) => {
-        const newMessages = [...prev];
-        const lastIdx = newMessages.length - 1;
-        if (newMessages[lastIdx]?.role === "ai") {
-          newMessages[lastIdx] = {
-            ...newMessages[lastIdx],
-            status: "done",
-          };
-        }
-        return newMessages;
-      });
+      commitStreamedMessage("done");
     },
     onError: () => {
       setLoading(false);
-      setCurrentMessages((prev) => {
-        const newMessages = [...prev];
-        if (newMessages[newMessages.length - 1]?.role === "ai") {
-          newMessages[newMessages.length - 1] = {
-            ...newMessages[newMessages.length - 1],
-            status: "error",
-          };
-        }
-        return newMessages;
-      });
+      // Preserve the partial answer so the user keeps whatever arrived.
+      commitStreamedMessage("error");
       toast.error(t("chat.stream_error"));
     },
   });
@@ -205,29 +199,30 @@ function AiChat() {
       };
       setCurrentMessages((prev) => [...prev, aiMessage]);
 
-      await streamMutation.mutateAsync({
-        question,
-        model_type: selectedModel,
-        session_id: currentSessionId ?? undefined,
-        isNewSession: tempSession,
-      });
-
-      setLoading(false);
-      setCurrentMessages((prev) => {
-        const newMessages = [...prev];
-        if (
-          newMessages.length &&
-          newMessages[newMessages.length - 1].role === "ai"
-        ) {
-          newMessages[newMessages.length - 1] = {
-            ...newMessages[newMessages.length - 1],
-            status: "done",
-          };
+      try {
+        await streamMutation.mutateAsync({
+          question,
+          model_type: selectedModel,
+          session_id: currentSessionId ?? undefined,
+          isNewSession: tempSession,
+        });
+        // Safety net: commit even if the server closed without a [DONE] sentinel.
+        if (streamTextRef.current) {
+          setLoading(false);
+          commitStreamedMessage("done");
         }
-        return newMessages;
-      });
+      } catch {
+        // The mutation's onError already surfaced the failure and preserved
+        // the partial content — nothing more to do here.
+      }
     },
-    [tempSession, selectedModel, currentSessionId, streamMutation],
+    [
+      tempSession,
+      selectedModel,
+      currentSessionId,
+      streamMutation,
+      commitStreamedMessage,
+    ],
   );
 
   const handleNormal = useCallback(
@@ -417,7 +412,7 @@ function AiChat() {
               </p>
             </div>
           ) : (
-            <MessageList messages={currentMessages} />
+            <MessageList messages={currentMessages} streamRef={streamTextRef} />
           )}
         </div>
 
