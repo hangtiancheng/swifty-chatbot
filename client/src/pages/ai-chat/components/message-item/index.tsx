@@ -1,10 +1,9 @@
 import type { Message } from "@/types";
 import { Sparkles, User } from "lucide-react";
 import { memo, type RefObject } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { useTranslation } from "react-i18next";
 
+import Markdown from "@/components/markdown";
 import { cn } from "@/lib/utils";
 import StreamingMarkdown from "../streaming-markdown";
 
@@ -73,11 +72,7 @@ const MessageItem = memo(function MessageItem({ message, streamRef }: Props) {
             // Incremental block-level markdown — stays fully rendered mid-stream.
             <StreamingMarkdown sourceRef={streamRef} />
           ) : (
-            <div className="prose prose-sm [&_code]:bg-background/60 max-w-none text-sm leading-relaxed wrap-break-word [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_pre]:rounded-lg [&_pre]:p-3">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {message.content}
-              </ReactMarkdown>
-            </div>
+            <Markdown>{message.content}</Markdown>
           )}
         </div>
       </div>
