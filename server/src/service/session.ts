@@ -78,7 +78,7 @@ async function sendMessageStream2session(
     );
     const cb = (chunk: string) => {
       logger.info(`SSE send chunk: ${chunk} (len=${chunk.length})`);
-      res.write(`data: ${chunk}\n\n`);
+      res.write(`data: ${JSON.stringify(chunk)}\n\n`);
     };
     await aiAgent.responseStream(username, userMessage, cb);
     res.write("data: [DONE]\n\n");

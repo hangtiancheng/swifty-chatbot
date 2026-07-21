@@ -1,3 +1,4 @@
+import { code } from "@streamdown/code";
 import { Streamdown } from "streamdown";
 
 interface Props {
@@ -20,8 +21,9 @@ function Markdown({ children, mode = "static", isAnimating }: Props) {
     <Streamdown
       mode={mode}
       isAnimating={isAnimating}
+      plugins={{ code }}
       shikiTheme={["github-light", "github-dark"]}
-      className="prose prose-sm max-w-none text-sm leading-relaxed wrap-break-word"
+      className="max-w-none text-sm leading-relaxed wrap-break-word"
     >
       {children}
     </Streamdown>

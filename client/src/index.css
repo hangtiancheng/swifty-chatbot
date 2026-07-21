@@ -1,10 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@plugin "@tailwindcss/typography";
-
 /* Let Tailwind detect the utility classes used inside Streamdown's dist files. */
 @source "../node_modules/streamdown/dist/*.js";
+@source "../node_modules/@streamdown/code/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -29,6 +28,9 @@
   --border: oklch(0.91 0.015 25);
   --input: oklch(0.91 0.015 25);
   --ring: oklch(0.73 0.12 12);
+  --sidebar: oklch(0.965 0.01 28);
+  --sidebar-foreground: oklch(0.36 0.035 20);
+  --sidebar-border: oklch(0.91 0.015 25);
 }
 
 .dark {
@@ -51,6 +53,9 @@
   --border: oklch(0.31 0.02 20);
   --input: oklch(0.31 0.02 20);
   --ring: oklch(0.76 0.1 12);
+  --sidebar: oklch(0.25 0.02 20);
+  --sidebar-foreground: oklch(0.93 0.015 25);
+  --sidebar-border: oklch(0.31 0.02 20);
 }
 
 @theme inline {
@@ -73,6 +78,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -92,28 +100,18 @@
   * {
     @apply border-border outline-ring/50;
   }
+}
 
-  /*
-   * Bind the typography plugin's palette to our semantic tokens.
-   * Without this, .prose uses fixed neutral grays (illegible in dark mode)
-   * and a dark navy pre background (wrong in light mode).
-   */
-  .prose {
-    --tw-prose-body: var(--foreground);
-    --tw-prose-headings: var(--foreground);
-    --tw-prose-lead: var(--muted-foreground);
-    --tw-prose-links: var(--primary);
-    --tw-prose-bold: var(--foreground);
-    --tw-prose-counters: var(--muted-foreground);
-    --tw-prose-bullets: var(--muted-foreground);
-    --tw-prose-hr: var(--border);
-    --tw-prose-quotes: var(--foreground);
-    --tw-prose-quote-borders: var(--border);
-    --tw-prose-captions: var(--muted-foreground);
-    --tw-prose-code: var(--foreground);
-    --tw-prose-pre-code: var(--foreground);
-    --tw-prose-pre-bg: var(--muted);
-    --tw-prose-th-borders: var(--border);
-    --tw-prose-td-borders: var(--border);
-  }
+/*
+ * Streamdown ships pre-level background classes with a syntax error
+ * (`bg-[var(--sdm-bg,inherit]`, missing paren), so Tailwind never generates
+ * them. Recreate the intended rules: Shiki sets --sdm-bg / --shiki-dark-bg
+ * inline per theme.
+ */
+[data-streamdown="code-block-body"] pre {
+  background-color: var(--sdm-bg, transparent);
+}
+
+.dark [data-streamdown="code-block-body"] pre {
+  background-color: var(--shiki-dark-bg, var(--sdm-bg, transparent));
 }

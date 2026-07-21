@@ -4,7 +4,10 @@
     "codegen",
     "esbuild",
     "langchain",
+    "nomic",
     "ollama",
+    "qwen",
+    "shiki",
     "swifty",
     "textsplitters"
   ]

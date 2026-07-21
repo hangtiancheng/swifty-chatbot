@@ -68,22 +68,22 @@ export function useStreamMessage(callbacks: StreamCallbacks) {
             continue;
           }
 
-          if (payload.startsWith("{")) {
-            try {
-              const parsed = JSON.parse(payload);
+          let content = payload;
+          try {
+            const parsed = JSON.parse(payload);
+            if (typeof parsed === "string") {
+              content = parsed;
+            } else if (parsed && typeof parsed === "object") {
               if (parsed.session_id) {
                 callbacks.onSessionCreated(String(parsed.session_id));
-                continue;
               }
-            } catch {
-              // Not valid JSON session data, treat as content
+              continue;
             }
-            fullContent += payload;
-            callbacks.onChunk(fullContent);
-            continue;
+          } catch {
+            // Not valid JSON, treat as raw content
           }
 
-          fullContent += payload;
+          fullContent += content;
           callbacks.onChunk(fullContent);
         }
       }
