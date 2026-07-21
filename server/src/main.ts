@@ -61,7 +61,8 @@ async function main(): Promise<void> {
   const app = new Koa();
 
   app.use(cors());
-  app.use(bodyParser());
+  // JSON body size limit intentionally removed (default was 1MB)
+  app.use(bodyParser({ jsonLimit: "100mb" }));
 
   const router = initRouter();
   app.use(router.routes());

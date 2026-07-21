@@ -4,14 +4,13 @@ import { getAiAgentManager } from "../ai/manager";
 import type { ModelType } from "../ai/model";
 import { Code } from "../code";
 import { logger } from "../config";
-import { createSession } from "../dao/session";
+import { createSession, getSessionByUsername } from "../dao/session";
 import type { History } from "../model/message";
 import type { SessionDto } from "../model/session";
 
-function getSessionsByUsername(username: string): SessionDto[] {
-  const manager = getAiAgentManager();
-  const sessionIds = manager.getUserAllSessionIds(username);
-  return sessionIds.map((id) => ({ id, title: id }));
+async function getSessionsByUsername(username: string): Promise<SessionDto[]> {
+  const sessions = await getSessionByUsername(username);
+  return sessions.map((s) => ({ id: s.id, title: s.title }));
 }
 
 async function createSessionAndSendMessage(

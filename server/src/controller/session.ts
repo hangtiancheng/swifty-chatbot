@@ -22,7 +22,7 @@ const sessionIdSchema = z.object({
 export async function getUserSessionsByUsername(ctx: Context): Promise<void> {
   const username = String(ctx.state.username);
   logger.info({ username }, "Get user sessions by username");
-  const sessions = sessionService.getSessionsByUsername(username);
+  const sessions = await sessionService.getSessionsByUsername(username);
   ctx.body = success({ sessions });
 }
 

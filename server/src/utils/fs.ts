@@ -11,13 +11,13 @@ export function rmShallow(dir: string): void {
   }
 }
 
-const ALLOWED_EXTENSIONS = new Set([".md", ".txt"]);
+const ALLOWED_EXTENSIONS = new Set([".md", ".txt", ".json"]);
 
 export function validateFile(filename: string): void {
   const ext = extname(filename).toLowerCase();
   if (!ALLOWED_EXTENSIONS.has(ext)) {
     throw new Error(
-      `File type ${ext} not supported, only .md or .txt files are supported`,
+      `File type ${ext} not supported, only .md, .txt or .json files are supported`,
     );
   }
 }
