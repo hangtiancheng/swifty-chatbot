@@ -1,5 +1,5 @@
 {
-  "name": "@swifty-chatbot/server",
+  "name": "server",
   "version": "1.0.0",
   "description": "",
   "main": "dist/main.js",
@@ -13,7 +13,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.28.0",
   "dependencies": {
     "@koa/bodyparser": "^6.1.0",
